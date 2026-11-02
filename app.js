@@ -331,6 +331,24 @@
     box.innerHTML = h;
   }
 
+  // ---------- 示例报告（不需要 Key） ----------
+  const demoBtn = $("demoBtn");
+  if (demoBtn) {
+    demoBtn.onclick = () => {
+      if (typeof DEMO === "undefined") return;
+      ledger = DEMO.ledger.slice();
+      report = JSON.parse(JSON.stringify(DEMO.report));
+      renderFacts();
+      $("factCard").style.display = "block";
+      step(3);
+      renderReport();
+      const tip = document.createElement("div");
+      tip.style.cssText = "margin-top:18px;padding:12px 15px;background:#FBFAF8;border:1px dashed #E4E2DC;border-radius:7px;font-size:12.5px;color:#8C9099;line-height:1.7";
+      tip.textContent = "这是内置示例：一份虚构简历 + AI 产品实习 JD 的真实输出，没有调用你的 Key。想跑自己的简历，点左上角回到第一步。";
+      $("report").appendChild(tip);
+    };
+  }
+
   // ---------- 初始 ----------
   $("newCv").onclick = () => {
     ledger = []; report = null;
