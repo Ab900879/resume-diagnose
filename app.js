@@ -17,11 +17,54 @@
       model: LS.get("rd_model") || "deepseek-chat"
     };
   }
+  // ---------- 免费试用额度 ----------
+  function trialLeft() {
+    const t = window.TRIAL || {};
+    if (!t || !t.key) return -1;
+    const today = new Date().toISOString().slice(0, 10);
+    const rec = JSON.parse(LS.get("rd_trial") || "{}");
+    if (rec.date !== today) return t.dailyLimit || 3;
+    return Math.max(0, (t.dailyLimit || 3) - (rec.n || 0));
+  }
+  function trialUse() {
+    const today = new Date().toISOString().slice(0, 10);
+    const rec = JSON.parse(LS.get("rd_trial") || "{}");
+    if (rec.date !== today) LS.set("rd_trial", JSON.stringify({ date: today, n: 1 }));
+    else LS.set("rd_trial", JSON.stringify({ date: today, n: (rec.n || 0) + 1 }));
+  }
+  function refreshTrial() {
+    const left = trialLeft();
+    const sec = $("trialSec");
+    if (!$("trialBtn")) return;
+    if (left < 0) { sec.style.display = "none"; return; }
+    sec.style.display = "block";
+    $("trialNote").innerHTML = (window.TRIAL.note || "试用额度由作者承担。") + " 今天还剩 <b>" + left + "</b> 次。";
+    $("trialSub").textContent = "试用走的是作者自己的 Key。用完自动回到你自己的 Key，互不影响。";
+    $("trialBtn").disabled = left <= 0;
+    $("trialBtn").textContent = left > 0 ? "用作者提供的额度（剩 " + left + " 次）" : "今天的额度用完了";
+  }
+  $("trialBtn").onclick = () => {
+    if (trialLeft() <= 0) return;
+    LS.set("rd_key", window.TRIAL.key);
+    LS.set("rd_base", "https://api.deepseek.com/chat/completions");
+    LS.set("rd_model", "deepseek-chat");
+    refreshHint(); refreshTrial();
+    $("drawer").classList.remove("on");
+  };
+
   function refreshHint() {
     const c = cfg();
     $("factHint").textContent = c.key ? "拆完请自己抽查几条" : "需要先在右上角填 API Key";
     $("runFact").disabled = !c.key;
     $("setState").textContent = c.key ? "已保存 Key（" + c.key.slice(0, 6) + "…）" : "还没有填 Key";
+    const th = $("trialHint");
+    const left = trialLeft();
+    if (!c.key && left > 0) {
+      th.innerHTML = '<div class="warn-box">没有 Key 也能用：右上角齿轮 → 「用作者提供的额度」，今天还剩 <b>' + left + '</b> 次。</div>';
+    } else {
+      th.innerHTML = "";
+    }
+    refreshTrial();
   }
   $("setBtn").onclick = () => {
     const c = cfg();
@@ -94,6 +137,7 @@
     const content = data.choices && data.choices[0] && data.choices[0].message
       ? data.choices[0].message.content : "";
     if (!content) throw new Error("模型返回了空内容，重试一次。");
+    if (window.TRIAL && c.key === window.TRIAL.key) { trialUse(); refreshHint(); }
     return content;
   }
 
@@ -279,12 +323,12 @@
 
     // 逐句改写
     if (Array.isArray(r.rewrites) && r.rewrites.length) {
-      html += block("哪几句该怎么改", r.rewrites.map((w, i) =>
-        '<div style="padding:10px 0;border-top:' + (i ? '1px solid #EFEDE8' : 'none') + '">' +
-        '<div style="font-size:12px;color:#8C9099;margin-bottom:6px">' + esc(w.where || "") + '</div>' +
-        '<div style="font-size:12.5px;color:#8C9099;text-decoration:line-through;margin-bottom:6px">原：' + esc(w.original || "") + '</div>' +
-        '<div style="font-size:13.5px;color:#16181D;background:#FBFAF8;padding:9px 11px;border-radius:6px;border-left:2px solid #1E4468">' + esc(w.suggestion || "") + '</div>' +
-        '<div style="font-size:12.5px;color:#4A4F58;margin-top:7px">' + esc(w.why || "") + citeBtns(w.cites) + '</div>' +
+      html += block("哪几句该怎么改", r.rewrites.map(w =>
+        '<div class="rw">' +
+        '<div class="rw-where">' + esc(w.where || "") + '</div>' +
+        '<div class="rw-old">原：' + esc(w.original || "") + '</div>' +
+        '<div class="rw-new">' + esc(w.suggestion || "") + '</div>' +
+        '<div class="rw-why">' + esc(w.why || "") + citeBtns(w.cites) + '</div>' +
         '</div>'
       ).join(""));
     }
@@ -348,6 +392,111 @@
       $("report").appendChild(tip);
     };
   }
+
+  // ---------- 文件上传 ----------
+  function bindUpload(dropId, fileId, taId, statId, stT, stB) {
+    const drop = $(dropId), inp = $(fileId), ta = $(taId);
+    const stat = $(statId), st = $(stT), sb = $(stB);
+    if (!drop || !window.RD_FILES) return;
+
+    function setStat(msg, p, warn) {
+      stat.classList.add("on");
+      stat.classList.toggle("warn", !!warn);
+      st.textContent = msg;
+      sb.style.width = Math.round((p || 0) * 100) + "%";
+    }
+
+    async function handle(file) {
+      if (!file) return;
+      drop.classList.add("busy");
+      setStat("读取 " + file.name + " …", .08);
+      try {
+        const r = await window.RD_FILES.readAny(file, (m, p) => setStat(m, p));
+        ta.value = r.text;
+        setStat(r.warn ? r.warn : (r.kind + " 读完了，共 " + r.text.length + " 字，可直接拆"), 1, !!r.warn);
+      } catch (e) {
+        setStat(e.message, 1, true);
+      } finally {
+        drop.classList.remove("busy");
+        inp.value = "";
+      }
+    }
+
+    drop.onclick = () => inp.click();
+    inp.onchange = () => handle(inp.files && inp.files[0]);
+    ["dragenter", "dragover"].forEach(ev =>
+      drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+    ["dragleave", "dragend"].forEach(ev =>
+      drop.addEventListener(ev, e => { drop.classList.remove("over"); }));
+    drop.addEventListener("drop", e => {
+      e.preventDefault();
+      drop.classList.remove("over");
+      const dt = e.dataTransfer;
+      handle(dt && dt.files && dt.files[0]);
+    });
+  }
+  bindUpload("dropCv", "fileCv", "cv", "statCv", "statCvT", "statCvB");
+  bindUpload("dropJd", "fileJd", "jd", "statJd", "statJdT", "statJdB");
+
+  // ---------- 导出报告 ----------
+  function toMarkdown() {
+    const v = verifyReport(report, ledger);
+    const r = v.report;
+    const cites = c => (Array.isArray(c) && c.length) ? "（" + c.join(", ") + "）" : "";
+    let md = "# 简历诊断报告\n\n";
+    md += "- 分类：" + (r.class || "") + "\n- 判断：" + (r.reason || "") + "\n\n";
+
+    function sect(title, arr, f) {
+      if (!Array.isArray(arr) || !arr.length) return;
+      md += "## " + title + "\n\n";
+      arr.forEach(x => { md += "- " + f(x) + "\n"; });
+      md += "\n";
+    }
+    sect("这个岗位要什么", r.requirements, x => (x.id ? "[" + x.id + "] " : "") + x.text);
+    sect("你手里有什么", r.evidence, x =>
+      "[" + (x.level || "") + "] " + (x.req ? x.req + "：" : "") + x.text + cites(x.cites));
+    sect("缺什么", r.gaps, x => (x.title ? "**" + x.title + "**：" : "") + x.text + cites(x.cites));
+    sect("你真正能带走的东西", r.transferable, x =>
+      (x.ability ? "**" + x.ability + "**：" : "") + x.text + cites(x.cites));
+
+    if (r.timeline && r.timeline.months) {
+      md += "## 时间账\n\n- 补齐最短：" + r.timeline.months + " 个月\n";
+      md += "- 卡点：" + (r.timeline.blocker || "") + "\n";
+      md += "- 本周能做：" + (r.timeline.firstStep || "") + "\n";
+      if (r.nextApply) md += "- 先投什么：" + r.nextApply + "\n";
+      md += "\n";
+    }
+    sect("先回答这几个问题", r.questions, x => x);
+
+    if (Array.isArray(r.rewrites) && r.rewrites.length) {
+      md += "## 哪几句该怎么改\n\n";
+      r.rewrites.forEach(w => {
+        md += "**" + (w.where || "") + "**\n\n";
+        md += "- 原：" + (w.original || "") + "\n";
+        md += "- 改为：" + (w.suggestion || "") + "\n";
+        md += "- 为什么：" + (w.why || "") + cites(w.cites) + "\n\n";
+      });
+    }
+
+    md += "## 事实库\n\n";
+    ledger.forEach(f => {
+      md += "- " + f.id + " [" + (f.type || "") + "] " + f.text +
+        "（动词原文：" + (f.verb || "") + "，可验证性：" + (f.verifiable || "") + "）\n";
+    });
+    md += "\n---\n\n校验结果：" + (v.ok ? "PASS —— 每条结论都能指回原文" : "拦下 " + v.dropped.length + " 条（找不到出处或动词被升级）") + "\n";
+    return md;
+  }
+  $("exportBtn").onclick = () => {
+    if (!report) return;
+    const blob = new Blob([toMarkdown()], { type: "text/markdown;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "简历诊断-" + new Date().toISOString().slice(0, 10) + ".md";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
 
   // ---------- 初始 ----------
   $("newCv").onclick = () => {
