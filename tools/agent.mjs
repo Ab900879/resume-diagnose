@@ -102,6 +102,15 @@ log("\n校验：" + (chk.ok ? "PASS —— 每处改动都能指回你的简历�
   : "拦下 " + chk.dropped.length + " 处（找不到出处或动词被升级）"));
 chk.dropped.forEach(d => log("  × [" + d.kind + "] " + d.detail + " | " + String(d.text).slice(0, 60)));
 
+// ---- 黑话检查：简历正文里不许出现这些词 ----
+const BUZZ = ["闭环", "赋能", "沉淀", "抓手", "颗粒度", "对齐", "打通", "组合拳", "全链路"];
+const hit = BUZZ.filter(w => out.resume.includes(w));
+if (hit.length) {
+  log("\n⚠ 简历正文里还有黑话：" + hit.join("、") + " —— 手动改掉再投");
+} else {
+  log("      黑话检查：简历正文干净");
+}
+
 // ---- 写文件 ----
 fs.mkdirSync(outDir, { recursive: true });
 const today = new Date().toISOString().slice(0, 10);
