@@ -6,5 +6,5 @@ window.RD_CLOUD = {
   enabled: true,
   endpoint: "https://resume-diagnose.app.workbuddy.host",
   publishableKey: "wbpk_DEMWtyMX0lLWQwgSLHruaq_mkzyD5VF661iQtIfHajmfG3aAefudnA8",
-  dailyLimit: 5
+  dailyLimit: 20
 };
