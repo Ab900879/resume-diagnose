@@ -4,7 +4,10 @@
 
 投得了，它给出带事实编号的逐句改写；投不了，它一句都不改，只告诉你缺哪几件东西、补最短要多久、现在该投什么。
 
-**[在线看一眼](https://ab900879.github.io/resume-diagnose/)** · **[三分类怎么判](skill/references/triage.md)** · **[PRD](docs/PRD.md)** · **[决策日志](docs/DECISIONS.md)**
+**[打开就能用](https://ab900879.github.io/resume-diagnose/)** · **[它怎么想的](https://ab900879.github.io/resume-diagnose/about.html)** · **[三分类判据](skill/references/triage.md)** · **[PRD](docs/PRD.md)** · **[决策日志](docs/DECISIONS.md)**
+
+> 网页版是真能跑的：右上角填自己的模型 Key（默认 DeepSeek），贴简历 → 拆事实 → 贴 JD → 拿报告。
+> 事实库存在浏览器 localStorage 里，简历不出这台设备。
 
 ---
 
@@ -55,9 +58,16 @@ FAIL  修完再交付。
 
 第二种是重点。任何工具都能说"我不编"，只有写了校验器才抓得住。**能被验证的约束才算约束。**
 
-## 三种用法
+## 四种用法
 
-**一、当作 WorkBuddy 技能**（体验最完整）
+**一、直接打开网页用**（什么都不用装）
+
+打开 [ab900879.github.io/resume-diagnose](https://ab900879.github.io/resume-diagnose/)，右上角齿轮填一个模型 Key，然后按三步走。
+默认接 DeepSeek（便宜、允许浏览器直连），换其他兼容 OpenAI 格式的接口也可以，但对方必须允许跨域。
+
+事实库存在浏览器本地，换设备要重新建。
+
+**二、当作 WorkBuddy 技能**（体验最完整）
 
 ```bash
 cp -r skill ~/.workbuddy/skills/resume-diagnose
@@ -65,12 +75,12 @@ cp -r skill ~/.workbuddy/skills/resume-diagnose
 
 之后直接说"帮我诊断这份简历，投 XX 岗"，它会自动读事实库、分类、按模板输出、跑校验。
 
-**二、粘贴到任意大模型**（不需要任何工具）
+**三、粘贴到任意大模型**（不需要任何工具）
 
 用 [`prompt.md`](prompt.md)，两段分开跑，顺序不能反。ChatGPT / Claude / 豆包都能用。
 缺点是校验器跑不了，你得自己盯着编号。
 
-**三、只要校验器**
+**四、只要校验器**
 
 如果你已经在别处生成报告，直接把报告丢给 `verify_citations.py`，它不关心报告是谁写的。
 
