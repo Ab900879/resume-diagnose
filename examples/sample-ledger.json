@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "owner": "示例（虚构人物，仅用于展示格式）",
+    "updated": "2026-11-02",
+    "source": "虚构简历 · 1 页",
+    "note": "真实使用时替换为你自己的简历拆出来的条目"
+  },
+  "facts": [
+    {
+      "id": "f-001",
+      "type": "教育",
+      "text": "某大学 计算机 本科在读，2027 届",
+      "verb": "未标注",
+      "time": "2023.09-2027.06",
+      "source": "第 1 段",
+      "verifiable": "高",
+      "forbidden_rewrite": ["2027", "2023.09-2027.06"],
+      "transferable": []
+    },
+    {
+      "id": "f-002",
+      "type": "项目",
+      "text": "用 Coze 搭客服机器人，调了 50 多轮对话",
+      "verb": "独立完成",
+      "time": "2026.08-09",
+      "source": "项目 1 第 2 段",
+      "verifiable": "中",
+      "forbidden_rewrite": ["Coze", "50 多轮"],
+      "transferable": ["提示词设计", "对话流程设计"]
+    },
+    {
+      "id": "f-003",
+      "type": "项目",
+      "text": "给 Agent 定下查不到就转人工的规则，20 条测试从 17 条过到 19 条",
+      "verb": "独立完成",
+      "time": "2026.05-06",
+      "source": "项目 2 第 1 段",
+      "verifiable": "高",
+      "forbidden_rewrite": ["20 条", "17", "19"],
+      "transferable": ["边界条件定义", "测试设计"]
+    },
+    {
+      "id": "f-004",
+      "type": "校园",
+      "text": "协助社团办过 6 场活动，负责场地对接",
+      "verb": "协助",
+      "time": "2025.09-2026.01",
+      "source": "校园经历 第 1 段",
+      "verifiable": "中",
+      "forbidden_rewrite": ["6 场"],
+      "transferable": ["跨部门沟通", "活动执行"]
+    },
+    {
+      "id": "f-005",
+      "type": "技能",
+      "text": "技能栏：Python、SQL、Excel、PPT",
+      "verb": "未标注",
+      "time": "未标注",
+      "source": "技能栏",
+      "verifiable": "低",
+      "forbidden_rewrite": ["Python", "SQL", "Excel", "PPT"],
+      "transferable": []
+    }
+  ]
+}
