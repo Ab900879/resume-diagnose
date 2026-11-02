@@ -152,19 +152,84 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // ---------- 调模型 ----------
-  async function callLLM(userContent) {
-    if (useCloud()) {
-      try {
-        const t = await window.RD_CLOUD_API.chat(userContent);
-        cloudUse();
-        refreshHint();
-        return t;
-      } catch (e) {
-        throw new Error(window.RD_CLOUD_API.explain(e));
+  // ---------- 进度条（动态注入，不动页面结构） ----------
+  let runbar = null, runbarT = null, runbarB = null, runTimer = null;
+  (function makeBar() {
+    const st = document.createElement("style");
+    st.textContent =
+      "#rdBar{position:fixed;top:0;left:0;right:0;z-index:9999;background:#fff;border-bottom:1px solid #E4E2DC;" +
+      "padding:9px 18px;font-size:12.5px;color:#4A4F58;display:flex;align-items:center;gap:10px;" +
+      "box-shadow:0 2px 10px rgba(0,0,0,.06);transform:translateY(-100%);transition:transform .18s}" +
+      "#rdBar.on{transform:translateY(0)}" +
+      "#rdBar .rdDot{width:8px;height:8px;border-radius:50%;background:#1E4468;flex:none;animation:rdPulse 1s infinite}" +
+      "@keyframes rdPulse{0%,100%{opacity:1}50%{opacity:.25}}" +
+      "#rdBar .rdLine{flex:1;height:3px;background:#EFEDE8;border-radius:2px;overflow:hidden;max-width:220px}" +
+      "#rdBar .rdLine i{display:block;height:100%;width:0;background:#1E4468;transition:width .3s}";
+    document.head.appendChild(st);
+    runbar = document.createElement("div");
+    runbar.id = "rdBar";
+    runbar.innerHTML = '<span class="rdDot"></span><span id="rdBarT">准备中</span>' +
+      '<span class="rdLine"><i id="rdBarB"></i></span><span id="rdBarS" style="color:#8C9099"></span>';
+    document.body.appendChild(runbar);
+    runbarT = runbar.querySelector("#rdBarT");
+    runbarB = runbar.querySelector("#rdBarB");
+  })();
+
+  function barShow(text) {
+    window.__rdRunning = true;
+    runbar.classList.add("on");
+    runbarT.textContent = text;
+    runbar.querySelector("#rdBarS").textContent = "0s";
+    runbarB.style.width = "8%";
+    const t0 = Date.now();
+    clearInterval(runTimer);
+    runTimer = setInterval(() => {
+      runbar.querySelector("#rdBarS").textContent = ((Date.now() - t0) / 1000).toFixed(0) + "s";
+    }, 1000);
+  }
+  function barText(text, pct) {
+    runbarT.textContent = text;
+    if (pct != null) runbarB.style.width = Math.round(pct * 100) + "%";
+  }
+  function barHide() {
+    window.__rdRunning = false;
+    clearInterval(runTimer);
+    runbar.classList.remove("on");
+  }
+
+  // ---------- 调模型（云模式带结构校验 + 自动换模型） ----------
+  async function callJSON(userContent, check, label) {
+    barShow(label || "正在调用模型…");
+    try {
+      if (useCloud()) {
+        try {
+          const r = await window.RD_CLOUD_API.chatJSON(userContent, check, ev => {
+            if (ev.kind === "model") barText("用 " + ev.model + " 跑，等它出第一个字…", .12);
+            else if (ev.kind === "waiting") barText("模型还在想（" + (ev.ms / 1000).toFixed(0) + "s），正常是 10 秒内", .3);
+            else if (ev.kind === "first") barText("模型开始输出了", .45);
+            else if (ev.kind === "delta") barText("正在收结果（" + ev.len + " 字）", Math.min(.9, .45 + ev.len / 4000));
+          });
+          cloudUse();
+          refreshHint();
+          barText("跑完了", 1);
+          return r.obj;
+        } catch (e) {
+          throw new Error(window.RD_CLOUD_API.explain(e));
+        }
       }
+      const raw = await callKey(userContent);
+      const obj = extractJSON(raw);
+      if (check && !check(obj))
+        throw new Error("模型这次给的结构不完整（少了关键段落）。再跑一次；如果总是这样，切回免 Key 模式会自动换模型。");
+      barText("跑完了", 1);
+      return obj;
+    } finally {
+      setTimeout(barHide, 400);
     }
-    return callKey(userContent);
+  }
+
+  async function callLLM(userContent) {
+    return JSON.stringify(await callJSON(userContent, null, "正在调用模型…"));
   }
 
   async function callKey(userContent) {
@@ -240,13 +305,16 @@
     $("factCard").style.display = "none";
 
     try {
-      const raw = await callLLM(buildFactUser(cv));
-      const obj = extractJSON(raw);
+      const obj = await callJSON(buildFactUser(cv), o =>
+        !!(o && Array.isArray(o.facts) && o.facts.length && o.facts.every(f => f && f.id && f.text)),
+        "正在把你的简历拆成事实条目…"
+      );
       const facts = (obj.facts || []).filter(f => f && f.id && f.text);
       if (!facts.length) throw new Error("模型没给出事实条目。再试一次。");
       ledger = facts;
       LS.set("rd_ledger", JSON.stringify(ledger));
       LS.set("rd_cv", cv);
+      LS.set("rd_stage", "1");
       renderFacts();
       $("factCard").style.display = "block";
       if (facts.length <= 5) {
@@ -299,8 +367,17 @@
     btn.textContent = "正在诊断…";
 
     try {
-      const raw = await callLLM(buildDiagUser(ledger, jd));
-      report = extractJSON(raw);
+      report = await callJSON(buildDiagUser(ledger, jd), o => {
+        if (!o || !o.class || !o.reason) return false;
+        const n = k => (o[k] || []).length;
+        // 分类不同，该有的东西也不同：光给个分类、下面全是空的，不算跑通
+        if (o.class === "A" || o.class === "B") return n("rewrites") + n("gaps") > 0;
+        if (o.class === "C") return n("gaps") + n("transferable") > 0;
+        return n("requirements") + n("evidence") + n("gaps") + n("rewrites") > 0;
+      }, "正在对照岗位要求做诊断…");
+      LS.set("rd_jd", jd);
+      LS.set("rd_report", JSON.stringify(report));
+      LS.set("rd_stage", "2");
       step(3);
       renderReport();
     } catch (e) {
@@ -573,13 +650,14 @@
   // ---------- 初始 ----------
   $("newCv").onclick = () => {
     ledger = []; report = null;
-    LS.del("rd_ledger"); LS.del("rd_cv");
+    LS.del("rd_ledger"); LS.del("rd_cv"); LS.del("rd_jd"); LS.del("rd_report"); LS.del("rd_stage");
     $("cv").value = ""; $("jd").value = "";
     $("factCard").style.display = "none";
     $("facts").innerHTML = "";
     step(1);
   };
 
+  // 关掉页面 / 跳走之前的结果都还在：简历、JD、事实库、报告全部落在本地
   const savedLedger = LS.get("rd_ledger");
   if (savedLedger) {
     try {
@@ -592,6 +670,35 @@
   }
   const savedCv = LS.get("rd_cv");
   if (savedCv) $("cv").value = savedCv;
+  const savedJd = LS.get("rd_jd");
+  if (savedJd) $("jd").value = savedJd;
+
+  const savedReport = LS.get("rd_report");
+  if (savedReport && ledger.length) {
+    try {
+      report = JSON.parse(savedReport);
+      if (report && report.class) {
+        step(3);
+        renderReport();
+        const tip = document.createElement("div");
+        tip.style.cssText = "margin-top:18px;padding:12px 15px;background:#FBFAF8;border:1px dashed #E4E2DC;border-radius:7px;font-size:12.5px;color:#8C9099;line-height:1.7";
+        tip.textContent = "这是你上次跑出来的结果，一直存在这台设备的浏览器里——关掉页面、跳走再回来都还在。想重跑就点左上角「换一份简历」。";
+        $("report").appendChild(tip);
+      }
+    } catch (e) { report = null; }
+  } else if (ledger.length) {
+    // 只拆了事实库、还没诊断：直接回到第二步，不用重拆
+    step(2);
+    showErr("e2", "");
+  }
+
+  // 跑到一半离开页面时提醒一句（不是拦，是让知道自己会丢什么）
+  window.addEventListener("beforeunload", e => {
+    if (!window.__rdRunning) return;
+    e.preventDefault();
+    e.returnValue = "还在跑，现在离开这次就白跑了。";
+    return e.returnValue;
+  });
 
   refreshHint();
 })();
