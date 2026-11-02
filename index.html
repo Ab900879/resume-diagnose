@@ -285,8 +285,8 @@
       <span class="chip b"><b>B</b>重构型 · 经历够，写成了配角</span>
       <span class="chip c"><b>C</b>资格型 · 现在不建议投</span>
     </div>
-    <p class="demo-line">没有模型 Key 也能看效果：
-      <button id="demoBtn">打开一份跑好的报告 →</button>
+    <p class="demo-line">不用填 Key，默认走作者额度（每台设备每天 5 次）。也可以先看
+      <button id="demoBtn">一份跑好的报告 →</button>
     </p>
   </div>
 
@@ -386,6 +386,15 @@
     <h3>设置</h3>
     <p class="dsub">需要一个大模型接口。DeepSeek 最便宜，也支持浏览器直连。Key 只存在这台设备上，简历和 JD 全程不经过任何服务器。</p>
 
+    <div class="sec" id="modeSec" style="display:none;border-top:none;padding-top:0;margin-top:0">
+      <div class="sec-t">用哪种方式跑</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn sm" id="modeCloud">免 Key（作者额度）</button>
+        <button class="btn sm ghost" id="modeKey">我自己的 Key</button>
+      </div>
+      <p class="note" id="modeNote"></p>
+    </div>
+
     <div class="sec" id="trialSec" style="display:none">
       <div class="sec-t">免费试用</div>
       <div class="trial-box">
@@ -418,6 +427,8 @@
   </div>
 </div>
 
+<script src="cloud-config.js"></script>
+<script src="cloud.js"></script>
 <script src="trial-config.js"></script>
 <script src="demo-data.js"></script>
 <script src="prompts.js"></script>
