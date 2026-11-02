@@ -52,18 +52,76 @@
     $("drawer").classList.remove("on");
   };
 
+  // ---------- 运行方式：免 Key 云模式 / 自己的 Key ----------
+  function cloudOn() {
+    return !!(window.RD_CLOUD && window.RD_CLOUD.enabled && window.RD_CLOUD.endpoint && window.RD_CLOUD_API);
+  }
+  function cloudLeft() {
+    if (!cloudOn()) return -1;
+    const today = new Date().toISOString().slice(0, 10);
+    const rec = JSON.parse(LS.get("rd_cloud") || "{}");
+    if (rec.date !== today) return window.RD_CLOUD.dailyLimit || 5;
+    return Math.max(0, (window.RD_CLOUD.dailyLimit || 5) - (rec.n || 0));
+  }
+  function cloudUse() {
+    const today = new Date().toISOString().slice(0, 10);
+    const rec = JSON.parse(LS.get("rd_cloud") || "{}");
+    LS.set("rd_cloud", JSON.stringify({ date: today, n: (rec.date === today ? (rec.n || 0) : 0) + 1 }));
+  }
+  // 云服务校验 Origin：只有从应用自己的域名打开时，免 Key 模式才可用
+  function cloudHostOk() {
+    if (!cloudOn()) return false;
+    try {
+      const host = new URL(window.RD_CLOUD.endpoint).hostname;
+      return location.hostname === host || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    } catch (e) { return false; }
+  }
+  function useCloud() {
+    return LS.get("rd_mode") !== "key" && cloudHostOk() && cloudLeft() !== 0;
+  }
+  function refreshMode() {
+    const sec = $("modeSec");
+    if (!$("modeCloud") || !cloudOn()) { if (sec) sec.style.display = "none"; return; }
+    sec.style.display = "block";
+    if (!cloudHostOk()) {
+      $("modeCloud").className = "btn sm ghost";
+      $("modeKey").className = "btn sm";
+      $("modeNote").innerHTML = "免 Key 模式只在应用自己的域名上生效（云服务会校验来源）。当前是 " +
+        location.hostname + "，请用你自己的 Key。";
+      return;
+    }
+    const isCloud = useCloud();
+    $("modeCloud").className = "btn sm" + (isCloud ? "" : " ghost");
+    $("modeKey").className = "btn sm" + (isCloud ? " ghost" : "");
+    const left = Math.max(0, cloudLeft());
+    $("modeNote").innerHTML = isCloud
+      ? "现在走作者额度，这台设备今天还剩 <b>" + left + "</b> 次。用完自动切回你自己的 Key。"
+      : "现在用你自己的 Key。切回作者额度今天还剩 " + left + " 次。";
+  }
+  if ($("modeCloud")) {
+    $("modeCloud").onclick = () => { LS.set("rd_mode", "cloud"); refreshHint(); };
+    $("modeKey").onclick = () => { LS.set("rd_mode", "key"); refreshHint(); };
+  }
+
   function refreshHint() {
     const c = cfg();
-    $("factHint").textContent = c.key ? "拆完请自己抽查几条" : "需要先在右上角填 API Key";
-    $("runFact").disabled = !c.key;
-    $("setState").textContent = c.key ? "已保存 Key（" + c.key.slice(0, 6) + "…）" : "还没有填 Key";
+    const cloud = useCloud();
+    const left = Math.max(0, cloudLeft());
+    $("factHint").textContent = cloud
+      ? ("免 Key 模式，这台设备今天还剩 " + left + " 次")
+      : (c.key ? "拆完请自己抽查几条" : "右上角齿轮里选运行方式");
+    $("runFact").disabled = !(cloud || c.key);
+    $("setState").textContent = cloud
+      ? "免 Key 模式（作者额度，剩 " + left + " 次）"
+      : (c.key ? "已保存 Key（" + c.key.slice(0, 6) + "…）" : "还没有填 Key");
     const th = $("trialHint");
-    const left = trialLeft();
-    if (!c.key && left > 0) {
-      th.innerHTML = '<div class="warn-box">没有 Key 也能用：右上角齿轮 → 「用作者提供的额度」，今天还剩 <b>' + left + '</b> 次。</div>';
+    const tl = trialLeft();
+    if (!cloud && !c.key && tl > 0) {
+      th.innerHTML = '<div class="warn-box">没有 Key 也能用：右上角齿轮 → 「用作者提供的额度」，今天还剩 <b>' + tl + '</b> 次。</div>';
     } else {
       th.innerHTML = "";
     }
+    refreshMode();
     refreshTrial();
   }
   $("setBtn").onclick = () => {
@@ -96,8 +154,22 @@
 
   // ---------- 调模型 ----------
   async function callLLM(userContent) {
+    if (useCloud()) {
+      try {
+        const t = await window.RD_CLOUD_API.chat(userContent);
+        cloudUse();
+        refreshHint();
+        return t;
+      } catch (e) {
+        throw new Error(window.RD_CLOUD_API.explain(e));
+      }
+    }
+    return callKey(userContent);
+  }
+
+  async function callKey(userContent) {
     const c = cfg();
-    if (!c.key) throw new Error("没填 API Key。点右上角齿轮填一个。");
+    if (!c.key) throw new Error("没填 API Key。右上角齿轮里填一个，或者切回免 Key 模式。");
 
     let res;
     try {
