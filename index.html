@@ -3,745 +3,276 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>简历诊断助手 · 从 PRD 到可交互原型 | 张照泉</title>
+<title>简历诊断 · 先说该不该投</title>
 <style>
   :root{
-    --bg:#F7F6F3;
-    --card:#FFFFFF;
-    --ink:#16181D;
-    --ink2:#4A4F58;
-    --ink3:#8C9099;
-    --line:#E4E2DC;
-    --line2:#EFEDE8;
-    --accent:#1E4468;
-    --accent-soft:#EAF0F5;
-    --warm:#B4552D;
-    --warm-soft:#FAF0EA;
-    --good:#2F6B4F;
-    --good-soft:#EAF2ED;
+    --bg:#F7F6F3; --card:#FFF; --ink:#16181D; --ink2:#4A4F58; --ink3:#8C9099;
+    --line:#E4E2DC; --line2:#EFEDE8;
+    --accent:#1E4468; --accent-soft:#EAF0F5;
+    --warm:#B4552D; --warm-soft:#FAF0EA;
+    --good:#2F6B4F; --good-soft:#EAF2ED;
     --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --r:10px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
   body{
-    background:var(--bg);
-    color:var(--ink);
+    background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
-    font-size:16px;
-    line-height:1.75;
-    -webkit-font-smoothing:antialiased;
+    font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:960px;margin:0 auto;padding:0 28px}
-  @media(max-width:640px){.wrap{padding:0 18px}}
+  button{font-family:inherit;cursor:pointer}
+  .wrap{max-width:940px;margin:0 auto;padding:0 24px}
+  @media(max-width:640px){.wrap{padding:0 16px}}
 
-  /* ---------- 顶部 ---------- */
-  header{
-    position:sticky;top:0;z-index:50;
-    background:rgba(247,246,243,.88);
-    backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--line);
-  }
-  .nav{display:flex;align-items:center;justify-content:space-between;height:58px}
-  .nav-l{display:flex;align-items:center;gap:11px;font-size:14px;font-weight:600;letter-spacing:.01em}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--warm)}
-  .nav-r{display:flex;gap:22px;font-size:13.5px;color:var(--ink2)}
-  .nav-r a{color:inherit;text-decoration:none;transition:color .2s}
-  .nav-r a:hover{color:var(--ink)}
-  @media(max-width:700px){.nav-r{display:none}}
+  /* header */
+  header{position:sticky;top:0;z-index:40;background:rgba(247,246,243,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .hd{display:flex;align-items:center;justify-content:space-between;height:56px;gap:16px}
+  .brand{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;white-space:nowrap}
+  .brand i{width:7px;height:7px;border-radius:50%;background:var(--warm);display:block}
+  .steps{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink3);flex:1;justify-content:center}
+  .steps b{font-family:var(--mono);font-size:10.5px;font-weight:600}
+  .steps span{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;transition:.2s}
+  .steps span.on{background:var(--ink);color:#fff}
+  .steps span.done{color:var(--good)}
+  .steps em{font-style:normal;opacity:.4}
+  @media(max-width:760px){.steps{display:none}}
+  .icon-btn{border:1px solid var(--line);background:#fff;border-radius:7px;width:34px;height:34px;display:grid;place-items:center;color:var(--ink2);font-size:14px}
+  .icon-btn:hover{background:#FBFAF8}
 
-  /* ---------- Hero ---------- */
-  .hero{padding:76px 0 60px;border-bottom:1px solid var(--line)}
-  .kicker{
-    display:inline-flex;align-items:center;gap:8px;
-    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--ink3);margin-bottom:22px;font-weight:600;
-  }
-  .kicker::before{content:"";width:22px;height:1px;background:var(--ink3)}
-  h1{
-    font-size:clamp(30px,4.6vw,46px);
-    line-height:1.24;letter-spacing:-.022em;font-weight:700;
-    max-width:20ch;
-  }
-  h1 em{font-style:normal;color:var(--warm)}
-  .lede{
-    margin-top:22px;font-size:17.5px;color:var(--ink2);
-    max-width:58ch;line-height:1.85;
-  }
-  .lede strong{color:var(--ink);font-weight:600}
-  .meta{
-    margin-top:34px;display:flex;flex-wrap:wrap;gap:10px 26px;
-    font-size:13px;color:var(--ink3);
-  }
-  .meta span{display:inline-flex;align-items:center;gap:7px}
-  .meta b{color:var(--ink2);font-weight:600}
+  /* 主区 */
+  main{padding:38px 0 80px}
+  .intro{margin-bottom:30px}
+  .intro h1{font-size:clamp(22px,3vw,29px);line-height:1.35;letter-spacing:-.02em;font-weight:700;max-width:24ch}
+  .intro p{margin-top:12px;color:var(--ink2);font-size:14.5px;max-width:62ch}
+  .intro code{font-family:var(--mono);font-size:12.5px;background:#EFEDE8;padding:1px 5px;border-radius:3px}
 
-  /* 数据条 */
-  .stats{
-    display:grid;grid-template-columns:repeat(4,1fr);
-    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-    margin-top:52px;
-  }
-  .stat{padding:26px 22px 26px 0;border-right:1px solid var(--line)}
-  .stat:last-child{border-right:none}
-  .stat .n{font-size:27px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-  .stat .n small{font-size:14px;font-weight:600;color:var(--ink3);margin-left:2px}
-  .stat .l{font-size:12.5px;color:var(--ink3);margin-top:4px;line-height:1.5}
-  @media(max-width:700px){
-    .stats{grid-template-columns:repeat(2,1fr)}
-    .stat:nth-child(2){border-right:none}
-    .stat:nth-child(1),.stat:nth-child(2){border-bottom:1px solid var(--line)}
-  }
+  .panel{display:none}
+  .panel.on{display:block;animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
-  /* ---------- 通用 section ---------- */
-  section{padding:72px 0;border-bottom:1px solid var(--line)}
-  .sec-h{display:flex;align-items:baseline;gap:16px;margin-bottom:14px}
-  .sec-n{
-    font-family:var(--mono);font-size:11.5px;color:var(--ink3);
-    letter-spacing:.06em;padding-top:6px;
-  }
-  h2{font-size:26px;letter-spacing:-.015em;font-weight:700;line-height:1.35}
-  .sec-sub{color:var(--ink2);font-size:15.5px;max-width:64ch;margin-left:38px;margin-bottom:38px}
-  @media(max-width:640px){.sec-sub{margin-left:0}}
-  @media(max-width:640px){h2{font-size:22px}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+  .card+.card{margin-top:16px}
+  .card-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .card-h h2{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .card-h .sub{font-size:12.5px;color:var(--ink3)}
 
-  p+p{margin-top:15px}
-  .body p{color:var(--ink2);max-width:66ch}
-  .body strong{color:var(--ink);font-weight:600}
+  label.fl{display:block;font-size:12px;font-weight:600;color:var(--ink2);letter-spacing:.03em;margin-bottom:7px}
+  textarea{
+    width:100%;border:1px solid var(--line);border-radius:8px;padding:12px 13px;
+    font-family:var(--mono);font-size:12.5px;line-height:1.8;color:var(--ink2);
+    background:#FCFBF9;resize:vertical;min-height:172px;
+  }
+  textarea:focus{outline:2px solid var(--accent-soft);border-color:#C9D6E2;background:#fff}
+  textarea::placeholder{color:#B4B2A9}
 
-  /* ---------- 判断表 ---------- */
-  .tbl{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
-  .tbl th{
-    text-align:left;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
-    color:var(--ink3);font-weight:600;padding:0 14px 11px 0;border-bottom:1px solid var(--line);
-  }
-  .tbl td{padding:16px 14px 16px 0;border-bottom:1px solid var(--line2);vertical-align:top;color:var(--ink2);line-height:1.65}
-  .tbl td:first-child{color:var(--ink);font-weight:600;white-space:nowrap;width:1%}
-  .tbl tr:last-child td{border-bottom:none}
-  .tag{
-    display:inline-block;font-size:11px;font-family:var(--mono);font-weight:600;
-    padding:2px 7px;border-radius:4px;letter-spacing:.02em;
-  }
-  .tag.a{background:var(--good-soft);color:var(--good)}
-  .tag.b{background:var(--accent-soft);color:var(--accent)}
-  .tag.c{background:var(--warm-soft);color:var(--warm)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.row{grid-template-columns:1fr}}
 
-  /* ---------- 原型 ---------- */
-  .frame{
-    background:var(--card);border:1px solid var(--line);border-radius:12px;
-    overflow:hidden;box-shadow:0 1px 2px rgba(22,24,29,.04),0 12px 32px -18px rgba(22,24,29,.16);
-  }
-  .chrome{
-    display:flex;align-items:center;gap:8px;padding:11px 14px;
-    background:#FBFAF8;border-bottom:1px solid var(--line);
-  }
-  .lights{display:flex;gap:6px}
-  .lights i{width:9px;height:9px;border-radius:50%;background:#DFDCD5;display:block}
-  .url{
-    flex:1;text-align:center;font-family:var(--mono);font-size:11.5px;
-    color:var(--ink3);background:#fff;border:1px solid var(--line2);
-    border-radius:5px;padding:3px 10px;max-width:340px;margin:0 auto;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  }
-  .steps{
-    display:flex;gap:0;border-bottom:1px solid var(--line);background:#FCFBF9;
-  }
-  .step{
-    flex:1;padding:13px 10px;font-size:12.5px;color:var(--ink3);
-    text-align:center;border:none;background:none;cursor:pointer;
-    font-family:inherit;position:relative;transition:color .2s;
-  }
-  .step b{font-family:var(--mono);font-weight:600;margin-right:6px;font-size:11px}
-  .step.on{color:var(--ink);font-weight:600}
-  .step.on::after{
-    content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--ink);
-  }
-  .step:hover{color:var(--ink2)}
-  .screens{padding:26px;min-height:430px;background:#fff}
-  @media(max-width:640px){.screens{padding:16px}}
-
-  .screen{display:none;animation:fade .32s ease}
-  .screen.on{display:block}
-  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-  /* 屏1 */
-  .input-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media(max-width:700px){.input-grid{grid-template-columns:1fr}}
-  .field label{
-    display:block;font-size:12px;font-weight:600;color:var(--ink2);
-    letter-spacing:.04em;margin-bottom:8px;
-  }
-  .field textarea{
-    width:100%;height:180px;resize:none;border:1px solid var(--line);
-    border-radius:8px;padding:12px 13px;font-family:var(--mono);
-    font-size:11.5px;line-height:1.85;color:var(--ink2);background:#FCFBF9;
-  }
-  .field textarea:focus{outline:2px solid var(--accent-soft);border-color:#C9D6E2}
-  .actions{display:flex;align-items:center;gap:16px;margin-top:18px;flex-wrap:wrap}
+  .acts{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap}
   .btn{
     border:none;border-radius:7px;padding:10px 20px;font-size:14px;font-weight:600;
-    font-family:inherit;cursor:pointer;background:var(--ink);color:#fff;
-    transition:opacity .2s,transform .1s;
+    background:var(--ink);color:#fff;transition:opacity .2s,transform .1s;
   }
-  .btn:hover{opacity:.86}
-  .btn:active{transform:scale(.985)}
+  .btn:hover:not(:disabled){opacity:.86}
+  .btn:active:not(:disabled){transform:scale(.985)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
   .btn.ghost{background:none;color:var(--ink2);border:1px solid var(--line);font-weight:500}
-  .btn.ghost:hover{background:#FBFAF8;opacity:1}
-  .hint{font-size:12px;color:var(--ink3)}
+  .btn.ghost:hover{background:#FBFAF8}
+  .btn.sm{padding:7px 14px;font-size:13px}
+  .hint{font-size:12px;color:var(--ink3);line-height:1.6}
 
-  /* 屏2 报告 */
-  .verdict{
-    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-    padding:13px 16px;background:var(--good-soft);border-radius:8px;
-    border-left:3px solid var(--good);margin-bottom:20px;
+  /* 事实库 */
+  .facts{margin-top:6px}
+  .fact{
+    display:grid;grid-template-columns:56px 1fr 76px 26px;gap:10px;align-items:start;
+    padding:11px 0;border-top:1px solid var(--line2);font-size:13px;
   }
-  .verdict .v-t{font-size:13.5px;font-weight:700;color:var(--good)}
-  .verdict .v-d{font-size:12.5px;color:#3E5B4C}
-  .blk{margin-bottom:8px;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
-  .blk-h{
-    width:100%;text-align:left;background:#FCFBF9;border:none;cursor:pointer;
-    padding:12px 15px;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-  }
-  .blk-h:hover{background:#F8F7F4}
-  .blk-h .c{font-family:var(--mono);font-size:11px;color:var(--ink3);font-weight:400}
-  .blk-b{padding:4px 15px 14px;display:none}
-  .blk.open .blk-b{display:block}
-  .row{
-    display:flex;gap:10px;align-items:flex-start;
-    padding:10px 0;border-top:1px solid var(--line2);font-size:13px;
-  }
-  .row:first-child{border-top:none}
-  .row .k{color:var(--ink);font-weight:600;min-width:112px;flex-shrink:0;font-size:12.5px}
-  .row .v{color:var(--ink2);line-height:1.7}
-  .row .v em{font-style:normal;color:var(--ink);background:#FBF3EE;padding:0 2px;border-radius:2px}
-  .fid{
-    font-family:var(--mono);font-size:10.5px;padding:1px 5px;border-radius:3px;
-    background:var(--accent-soft);color:var(--accent);cursor:pointer;
-    border:none;font-weight:600;vertical-align:1.5px;margin-left:4px;
-    transition:background .15s;
-  }
-  .fid:hover{background:#DCE7F0}
-  .fid.act{background:var(--accent);color:#fff}
-  .quote{
-    margin-top:14px;padding:13px 16px;background:#FBFAF8;
-    border:1px dashed var(--line);border-radius:8px;font-size:12.5px;
-    color:var(--ink2);line-height:1.75;display:none;
-  }
-  .quote.on{display:block}
-  .quote .qh{
-    font-family:var(--mono);font-size:10.5px;color:var(--ink3);
-    letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;font-weight:600;
-  }
-  .quote .qt{font-style:normal;color:var(--ink);background:#fff;display:block;padding:8px 11px;border-radius:4px;border-left:2px solid var(--accent);margin:6px 0}
+  .fact:first-child{border-top:none}
+  .fact .fid{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;padding-top:2px}
+  .fact .ft{color:var(--ink2);line-height:1.65}
+  .fact .ft b{color:var(--ink);font-weight:600}
+  .fact .fv{font-family:var(--mono);font-size:10.5px;color:var(--ink3);padding-top:3px}
+  .fact .del{border:none;background:none;color:#C9C6BE;font-size:15px;line-height:1;padding:2px}
+  .fact .del:hover{color:var(--warm)}
+  @media(max-width:640px){.fact{grid-template-columns:52px 1fr 24px}.fact .fv{display:none}}
 
-  /* 屏3 */
-  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:700px){.cmp{grid-template-columns:1fr}}
-  .cmp-card{border:1px solid var(--line);border-radius:8px;padding:18px 17px;background:#FCFBF9}
-  .cmp-card.bad{border-color:#E8D7CE;background:var(--warm-soft)}
-  .cmp-card.good{border-color:#CFE0D6;background:var(--good-soft)}
-  .cmp-card h4{font-size:13px;font-weight:700;margin-bottom:10px;letter-spacing:.01em}
-  .cmp-card.bad h4{color:var(--warm)}
-  .cmp-card.good h4{color:var(--good)}
-  .cmp-card p{font-size:12.5px;color:var(--ink2);line-height:1.78}
-  .cmp-card ul{margin:8px 0 0 0;padding-left:0;list-style:none}
-  .cmp-card li{font-size:12.5px;color:var(--ink2);line-height:1.7;padding-left:15px;position:relative;margin-top:5px}
-  .cmp-card li::before{content:"—";position:absolute;left:0;color:var(--ink3)}
+  /* 结论徽标 */
+  .verdict{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-radius:9px;border-left:3px solid;margin-bottom:18px;flex-wrap:wrap}
+  .verdict.A{background:var(--good-soft);border-color:var(--good)}
+  .verdict.B{background:var(--accent-soft);border-color:var(--accent)}
+  .verdict.C{background:var(--warm-soft);border-color:var(--warm)}
+  .verdict .vtag{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:#fff;white-space:nowrap}
+  .verdict.A .vtag{color:var(--good)}
+  .verdict.B .vtag{color:var(--accent)}
+  .verdict.C .vtag{color:var(--warm)}
+  .verdict .vt{font-size:14px;font-weight:700;margin-bottom:3px}
+  .verdict.A .vt{color:var(--good)}.verdict.B .vt{color:var(--accent)}.verdict.C .vt{color:var(--warm)}
+  .verdict .vd{font-size:13px;color:var(--ink2);line-height:1.65}
 
-  /* ---------- 决策 ---------- */
-  .dec{padding:28px 0;border-top:1px solid var(--line)}
-  .dec:first-of-type{border-top:none;padding-top:0}
-  .dec-h{display:flex;align-items:baseline;gap:13px;margin-bottom:16px;flex-wrap:wrap}
-  .dec-id{
-    font-family:var(--mono);font-size:11px;color:var(--accent);
-    letter-spacing:.06em;font-weight:600;background:var(--accent-soft);
-    padding:2px 7px;border-radius:4px;
-  }
-  .dec h3{font-size:17px;font-weight:700;line-height:1.45;letter-spacing:-.01em}
-  .dl{display:grid;grid-template-columns:92px 1fr;gap:16px;padding:11px 0;border-top:1px dashed var(--line2)}
-  .dl:first-of-type{border-top:none}
-  .dl .lb{
-    font-size:11px;letter-spacing:.06em;color:var(--ink3);
-    font-weight:600;padding-top:2px;
-  }
-  .dl .lb.warn{color:var(--warm)}
-  .dl .lb.ok{color:var(--good)}
-  .dl .tx{font-size:14px;color:var(--ink2);line-height:1.75}
-  .dl .tx em{font-style:normal;color:var(--ink);font-weight:600}
-  @media(max-width:600px){.dl{grid-template-columns:1fr;gap:5px}}
+  /* 报告块 */
+  .blk{margin-top:14px;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .blk-h{padding:11px 15px;background:#FCFBF9;border-bottom:1px solid var(--line2);font-size:13px;font-weight:600}
+  .blk-b{padding:6px 15px 12px}
+  .line{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line2);font-size:13px;align-items:flex-start}
+  .line:first-child{border-top:none}
+  .line .k{min-width:88px;flex-shrink:0;font-weight:600;color:var(--ink);font-size:12.5px}
+  .line .v{color:var(--ink2);line-height:1.7}
+  .lv{display:inline-block;font-size:10.5px;font-family:var(--mono);padding:1px 5px;border-radius:3px;margin-right:6px;font-weight:600}
+  .lv.s{background:var(--good-soft);color:var(--good)}
+  .lv.m{background:var(--accent-soft);color:var(--accent)}
+  .lv.w{background:var(--warm-soft);color:var(--warm)}
+  .lv.n{background:#EFEDE8;color:var(--ink3)}
+  .fid-btn{font-family:var(--mono);font-size:10.5px;padding:1px 5px;border-radius:3px;background:var(--accent-soft);color:var(--accent);border:none;font-weight:600;margin-left:4px;vertical-align:1.5px}
+  .fid-btn:hover{background:#DCE7F0}
+  .src{margin-top:12px;padding:11px 14px;background:#FBFAF8;border:1px dashed var(--line);border-radius:7px;font-size:12.5px;color:var(--ink2);display:none}
+  .src.on{display:block}
+  .src .sh{font-family:var(--mono);font-size:10.5px;color:var(--ink3);letter-spacing:.05em;margin-bottom:5px;font-weight:600}
 
-  /* ---------- 硬伤卡 ---------- */
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media(max-width:700px){.grid2{grid-template-columns:1fr}}
-  .flaw{
-    background:var(--card);border:1px solid var(--line);border-radius:10px;
-    padding:22px 22px 20px;
-  }
-  .flaw .fn{
-    font-family:var(--mono);font-size:11px;color:var(--warm);font-weight:600;
-    letter-spacing:.06em;margin-bottom:9px;
-  }
-  .flaw h3{font-size:15.5px;font-weight:700;line-height:1.5;margin-bottom:10px}
-  .flaw .was,.flaw .now{font-size:13px;line-height:1.72;color:var(--ink2)}
-  .flaw .was{margin-bottom:12px}
-  .flaw .was b{color:var(--warm);font-weight:600;font-size:11.5px;letter-spacing:.05em;display:block;margin-bottom:3px}
-  .flaw .now b{color:var(--good);font-weight:600;font-size:11.5px;letter-spacing:.05em;display:block;margin-bottom:3px}
+  /* 校验 */
+  .chk{display:flex;align-items:center;gap:11px;padding:13px 16px;border-radius:8px;font-size:13px;margin-top:16px}
+  .chk.ok{background:var(--good-soft);color:var(--good)}
+  .chk.bad{background:var(--warm-soft);color:var(--warm)}
+  .chk .cn{font-family:var(--mono);font-weight:700;font-size:11.5px}
+  .chk .cd{color:var(--ink2);font-size:12.5px}
 
-  /* ---------- 待验证 ---------- */
-  .pending{list-style:none;margin-top:6px}
-  .pending li{
-    padding:16px 0;border-bottom:1px solid var(--line2);font-size:14px;
-    color:var(--ink2);line-height:1.75;
+  /* 设置抽屉 */
+  .drawer{position:fixed;inset:0;z-index:60;display:none}
+  .drawer.on{display:block}
+  .drawer .mask{position:absolute;inset:0;background:rgba(22,24,29,.32)}
+  .drawer .box{
+    position:absolute;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:#fff;
+    border-left:1px solid var(--line);padding:22px;overflow-y:auto;
   }
-  .pending li:last-child{border-bottom:none}
-  .pending .pt{color:var(--ink);font-weight:600;display:block;margin-bottom:3px}
-  .pending .pm{
-    font-family:var(--mono);font-size:11.5px;color:var(--ink3);
-    display:inline-block;margin-top:5px;
-  }
+  .drawer h3{font-size:15px;font-weight:700;margin-bottom:4px}
+  .drawer .dsub{font-size:12.5px;color:var(--ink3);margin-bottom:20px;line-height:1.6}
+  .drawer label{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin:14px 0 6px}
+  .drawer input{width:100%;border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-size:13px;font-family:var(--mono);background:#FCFBF9}
+  .drawer input:focus{outline:2px solid var(--accent-soft);border-color:#C9D6E2;background:#fff}
+  .drawer .note{font-size:11.5px;color:var(--ink3);margin-top:6px;line-height:1.6}
+  .drawer .dacts{margin-top:24px;display:flex;gap:10px}
 
-  /* ---------- 结语 ---------- */
-  .end{padding:64px 0 76px;border-bottom:none}
-  .end blockquote{
-    border-left:2px solid var(--warm);padding-left:22px;
-    font-size:17px;line-height:1.85;color:var(--ink);max-width:58ch;
-  }
-  .end .sig{margin-top:34px;font-size:13px;color:var(--ink3);line-height:2}
-  .end .sig a{color:var(--ink2)}
-  footer{
-    border-top:1px solid var(--line);padding:26px 0;
-    font-size:12px;color:var(--ink3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
-  }
+  /* 加载 */
+  .loading{display:flex;align-items:center;gap:11px;padding:26px 0;color:var(--ink3);font-size:13.5px}
+  .spin{width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  .err{padding:13px 16px;background:var(--warm-soft);border-left:3px solid var(--warm);border-radius:7px;font-size:13px;color:#7A3A20;line-height:1.7;margin-top:14px;white-space:pre-wrap}
+
+  footer{border-top:1px solid var(--line);padding:22px 0;font-size:12px;color:var(--ink3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  footer a{color:var(--ink2)}
+  .empty{padding:30px 0;text-align:center;color:var(--ink3);font-size:13px}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="wrap nav">
-    <div class="nav-l"><span class="dot"></span>简历诊断助手</div>
-    <nav class="nav-r">
-      <a href="#problem">问题</a>
-      <a href="#judge">关键判断</a>
-      <a href="#proto">原型</a>
-      <a href="#eval">评测</a>
-      <a href="#decide">决策</a>
-      <a href="#prd">PRD</a>
-    </nav>
+  <div class="wrap hd">
+    <div class="brand"><i></i>简历诊断<a href="about.html" style="color:#8C9099;font-weight:400;font-size:12.5px;text-decoration:none;margin-left:6px;border-left:1px solid #E4E2DC;padding-left:10px">这是什么</a></div>
+    <div class="steps">
+      <span id="st1" class="on"><b>01</b>建事实库</span><em>›</em>
+      <span id="st2"><b>02</b>填 JD</span><em>›</em>
+      <span id="st3"><b>03</b>读诊断</span>
+    </div>
+    <button class="icon-btn" id="setBtn" title="设置">⚙</button>
   </div>
 </header>
 
-<main>
+<main class="wrap">
 
-<!-- ============ HERO ============ -->
-<div class="wrap hero">
-  <div class="kicker">独立产品项目 · 2026.10 — 至今</div>
-  <h1>一个不帮你润色、<br>只告诉你<em>该投什么</em>的简历工具</h1>
-  <p class="lede">
-    市面上所有简历工具都在改措辞。我做的这一个会先回答一个问题：<strong>你手上这个岗位，现在该不该投。</strong>
-    投不了的话，它不改简历，只告诉你缺哪几件东西、补最短要多久、先投什么。
-  </p>
-  <div class="meta">
-    <span><b>角色</b>产品定义 · 提示词设计 · 原型 · 评测</span>
-    <span><b>产出</b>331 行 PRD · 可交互原型 · 2 轮提示词实测</span>
+  <div class="intro">
+    <h1>先说这个岗该不该投，<br>再决定要不要改简历。</h1>
+    <p>改措辞只对一类人有效。能力不够的人，改得再漂亮也只是在初筛被挂得更体面一点。
+       所以这里第一步不改编写，先判你是哪一类：<code>A 措辞型</code> / <code>B 重构型</code> / <code>C 资格型</code>。</p>
   </div>
 
-  <div class="stats">
-    <div class="stat"><div class="n">5</div><div class="l">轮实测样本<br>含 1 份真实简历</div></div>
-    <div class="stat"><div class="n">5/5</div><div class="l">首轮问题召回率<br>全部命中预期缺陷</div></div>
-    <div class="stat"><div class="n">4</div><div class="l">首轮暴露的硬伤<br>全部改写进 v0.2</div></div>
-    <div class="stat"><div class="n">331<small>行</small></div><div class="l">PRD，含 3 处<br>写明了验证方式的待验证</div></div>
-  </div>
-</div>
+  <!-- 01 -->
+  <section class="panel on" id="p1">
+    <div class="card">
+      <div class="card-h"><h2>把你的简历拆成带编号的事实</h2><span class="sub">只拆，不评价 · 拆完你自己核对</span></div>
+      <label class="fl">简历原文（直接粘贴，不用排版）</label>
+      <textarea id="cv" placeholder="把简历内容整段粘进来。PDF 里的文字可以全选复制。
 
-<!-- ============ 问题 ============ -->
-<section id="problem"><div class="wrap">
-  <div class="sec-h"><span class="sec-n">01</span><h2>它解决的那个具体麻烦</h2></div>
-  <p class="sec-sub">不是"简历写得不好看"，是"我不知道自己够不够格，所以只能反复磨措辞"。</p>
-
-  <div class="body">
-    <p>已经有一版改过两次的简历，看到一个新 JD，然后卡住。不知道这段经历算不算数、要不要放上去、要写到什么程度。于是问 ChatGPT，它给一堆"建议加强项目描述"；看看模板，模板只解决排版。</p>
-    <p><strong>改的全是措辞，而 HR 筛的是证据。</strong></p>
-    <p>现有工具失效的地方很一致：没有一个是先拿 JD 逐条对着你的简历问"这条你有没有东西能指出来"的。它们默认你够格，只负责让你看起来更好。</p>
-    <p>所以这个产品的第一条硬约束是：<strong>每一句改写后面必须挂一个事实编号，指回简历原文。指不回去的句子，不输出。</strong></p>
-  </div>
-</div></section>
-
-<!-- ============ 关键判断 ============ -->
-<section id="judge"><div class="wrap">
-  <div class="sec-h"><span class="sec-n">02</span><h2>最关键的判断：先分类，再诊断</h2></div>
-  <p class="sec-sub">这是整个项目里唯一一处"如果不改，产品就是错的"的地方。它来自首轮评测，不是来自设计。</p>
-
-  <div class="body" style="margin-bottom:30px">
-    <p>第一版提示词拿到简历就直接进四段诊断。跑 5 份样本时发现：<strong>其中 3 份根本没有这个岗位要的能力，它还在给改写建议。</strong></p>
-    <p>给一个 SQL 零基础的人改简历去投数据分析师，等于把人往坑里推。会改措辞的工具和敢说"你现在不该投"的工具，是两个物种。</p>
-  </div>
-
-  <table class="tbl">
-    <thead><tr><th>分类</th><th>判据</th><th>输出什么</th></tr></thead>
-    <tbody>
-      <tr>
-        <td><span class="tag a">A 措辞型</span></td>
-        <td>核心要求都有证据，只是没写清、没写数字</td>
-        <td>完整四段 + 逐句改写，每句挂事实编号</td>
-      </tr>
-      <tr>
-        <td><span class="tag b">B 重构型</span></td>
-        <td>经历够，但把自己写成了执行者（"配合""协助"）</td>
-        <td>不直接改。先追问"哪件是你自己决定的"，问到原料才重构</td>
-      </tr>
-      <tr>
-        <td><span class="tag c">C 资格型</span></td>
-        <td>核心要求里 ≥2 条完全无证据</td>
-        <td><strong>不逐句改写。</strong>只给可迁移项 + 时间账 + 先投什么岗</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <p style="margin-top:24px;font-size:13.5px;color:var(--ink3);max-width:66ch">
-    隐藏在这一步里的第二条约束：改写只能重组用户已有的信息，<strong style="color:var(--ink2)">不许升级动词</strong>。
-    "参与/协助"不许改成"主导/负责"，除非事实库里能指到对应的自主决策证据。这条是为了拦住 B 类场景下最自然的编造——
-    模型不认为那是编造，它认为那是"表达优化"，而用户面试第一问就崩。
-  </p>
-</div></section>
-
-<!-- ============ 原型 ============ -->
-<section id="proto"><div class="wrap">
-  <div class="sec-h"><span class="sec-n">03</span><h2>可交互原型</h2></div>
-  <p class="sec-sub">下面这一块能真点。三步走完，看得到完整的诊断输出和事实溯源。数据用的是脱敏后的真实样本。</p>
-
-  <div class="frame">
-    <div class="chrome">
-      <div class="lights"><i></i><i></i><i></i></div>
-      <div class="url">resume-diagnose · interactive prototype</div>
-      <div style="width:44px"></div>
-    </div>
-
-    <div class="steps">
-      <button class="step on" data-go="1"><b>01</b>输入简历与 JD</button>
-      <button class="step" data-go="2"><b>02</b>诊断报告</button>
-      <button class="step" data-go="3"><b>03</b>该不该投</button>
-    </div>
-
-    <div class="screens">
-
-      <!-- 屏 1 -->
-      <div class="screen on" id="s1">
-        <div class="input-grid">
-          <div class="field">
-            <label>简历文本</label>
-            <textarea readonly>教育：北京联合大学 · 通信工程 · 本科（2023.09—2027.06 在读）
-技能：需求分析、PRD 撰写、原型（Figma）、竞品分析、提示词设计
-项目：AI Agent 工具调用与 FAQ 知识库
-　用 ReAct 思路让 Agent 调用 3 个工具，先写 PRD 定下查不到就拒答。
-　20 条测试，命中率 85% 提到 100%。
-项目：大模型效果评测与 Badcase 分析
-　自己设计 10 条用例和 4 条打分规则，首跑 69.8 分。
-项目：PRD 转线框图与提示词迭代
-　用脚本把 PRD 转成 HTML 线框图，对比了 3 版提示词。</textarea>
-          </div>
-          <div class="field">
-            <label>目标岗位 JD</label>
-            <textarea readonly>AI 产品经理实习生
-1. 能独立撰写 PRD，含边界条件与验收标准
-2. 能把需求落成原型或流程图（Figma / Axure）
-3. 对 LLM 能力边界有认知，自己搭过 AI 应用
-4. 能定义评测标准、跑评测、做 badcase 归因
-5. 能跨职能协作，推动研发与算法落地</textarea>
-          </div>
-        </div>
-        <div class="actions">
-          <button class="btn" id="run">开始诊断</button>
-          <span class="hint">原型演示，不联网、不保存。真实版本约 8 秒出报告。</span>
-        </div>
+这里只做一件事：把每一条经历拆成带编号的条目，后面所有结论都必须挂在编号上。
+所以拆错一条，后面就全错。拆完请自己抽查几条，看是不是原文有的。"></textarea>
+      <div class="acts">
+        <button class="btn" id="runFact">拆成事实条目</button>
+        <span class="hint" id="factHint">需要先在右上角填 API Key</span>
       </div>
+      <div class="err" id="e1" style="display:none"></div>
+    </div>
 
-      <!-- 屏 2 -->
-      <div class="screen" id="s2">
-        <div class="verdict">
-          <span class="tag a" style="font-size:12px;padding:3px 9px">A 类 · 措辞型</span>
-          <span class="v-t">可以投</span>
-          <span class="v-d">5 条核心要求，0 条完全无证据。问题在怎么说，不在有没有。</span>
-        </div>
-
-        <div class="blk open">
-          <button class="blk-h">这个岗位要什么<span class="c">5 条，从 JD 逐条拆</span></button>
-          <div class="blk-b">
-            <div class="row"><span class="k">R1 · PRD</span><span class="v">能写清边界条件与验收标准，不只是列功能</span></div>
-            <div class="row"><span class="k">R2 · 原型</span><span class="v">能画到别人看着能开发的程度</span></div>
-            <div class="row"><span class="k">R3 · LLM 认知</span><span class="v">自己动手搭过，知道模型会怎么坏</span></div>
-            <div class="row"><span class="k">R4 · 评测</span><span class="v">能定标准、跑、把 badcase 归到具体原因</span></div>
-            <div class="row"><span class="k">R5 · 协作</span><span class="v">能把需求推到研发那边落地，不是传话</span></div>
-          </div>
-        </div>
-
-        <div class="blk open">
-          <button class="blk-h">你手里有什么<span class="c">4 强 1 弱</span></button>
-          <div class="blk-b">
-            <div class="row"><span class="k">R1 · 强</span><span class="v">Agent 项目先写 PRD 定下"查不到就拒答"，写了异常情况和验收标准 <button class="fid" data-q="q1">f-006</button></span></div>
-            <div class="row"><span class="k">R2 · 弱</span><span class="v">技能栏写着"原型（Figma）"，但<em>全篇没有任何一个项目用到 Figma</em> <button class="fid" data-q="q2">f-009</button></span></div>
-            <div class="row"><span class="k">R3 · 强</span><span class="v">Coze 助手 50+ 轮调优；ReAct 调 3 个工具；对比过 3 版提示词 <button class="fid" data-q="q3">f-007</button></span></div>
-            <div class="row"><span class="k">R4 · 最强</span><span class="v">10 条用例 + 4 条规则 + 评测报告，首跑 69.8，复核发现规则写错重跑 <button class="fid" data-q="q4">f-013</button></span></div>
-            <div class="row"><span class="k">R5 · 中</span><span class="v">校企项目里跟研发、运维对过需求，但只有"对过"，没有推动结果 <button class="fid" data-q="q5">f-018</button></span></div>
-          </div>
-        </div>
-
-        <div class="blk open">
-          <button class="blk-h">你缺什么<span class="c">0 条硬缺口，1 个可信度问题</span></button>
-          <div class="blk-b">
-            <div class="row"><span class="k">能力缺口</span><span class="v">5 条里 0 条完全没有证据。这一项不用补。</span></div>
-            <div class="row"><span class="k">更麻烦的</span><span class="v">6 个项目里只有 1 个有外部使用者。其余 5 个，使用者都是他自己。<em>面试官问"有人用吗"，答不上来，前面所有数字都会被重新解读成自己测自己。</em></span></div>
-          </div>
-        </div>
-
-        <div class="blk open">
-          <button class="blk-h">哪几句该怎么改<span class="c">2 句，都挂编号</span></button>
-          <div class="blk-b">
-            <div class="row"><span class="k">个人简介首句</span><span class="v">原句把"能力全部自学"放在最显眼的位置，还并列了七个名词。改成<em>最强的一个数字 + 唯一被真实使用的东西</em>——20 条测试把命中率从 85% 提到 100%，以及团队现在日常在用的 SQL 报表。<button class="fid" data-q="q4">f-013</button><button class="fid" data-q="q6">f-016</button></span></div>
-            <div class="row"><span class="k">原型这一条</span><span class="v">技能栏写了 Figma，但项目里没有对应物证。<em>要么去掉，要么补一个能点开的东西。</em>不能靠"我会"通过 R2。<button class="fid" data-q="q2">f-009</button></span></div>
-          </div>
-        </div>
-
-        <div class="quote" id="quote">
-          <div class="qh" id="qh">原文引用</div>
-          <span class="qt" id="qt"></span>
-          <span id="qs" style="color:var(--ink3);font-size:11.5px"></span>
-        </div>
+    <div class="card" id="factCard" style="display:none">
+      <div class="card-h"><h2>事实库</h2><span class="sub" id="factCount"></span></div>
+      <div class="facts" id="facts"></div>
+      <div class="acts">
+        <button class="btn" id="toJd">下一步：填目标 JD</button>
+        <span class="hint">不对的条目点 × 删掉，删掉的编号不会被后面引用</span>
       </div>
+    </div>
+  </section>
 
-      <!-- 屏 3 -->
-      <div class="screen" id="s3">
-        <p style="font-size:13.5px;color:var(--ink2);margin-bottom:20px;max-width:64ch">
-          把样本换成"4 年电商运营、零 SQL，投数据分析师"，这个产品会输出完全不同的东西。下面左边是普通简历工具的做法，右边是它的做法。
-        </p>
-        <div class="cmp">
-          <div class="cmp-card bad">
-            <h4>只会改措辞的工具</h4>
-            <ul>
-              <li>把"协助完成 140 期周报"改成"独立产出 140 期数据周报"</li>
-              <li>技能栏加上"SQL（熟练）"，因为 JD 要求</li>
-              <li>给一句"建议补充项目经历，突出数据敏感度"</li>
-              <li>最后打分 82 分，提示"可以投递"</li>
-            </ul>
-            <p style="margin-top:12px;font-size:12px;color:var(--warm)">用户拿着它去面试，第一问 SQL 就结束。</p>
-          </div>
-          <div class="cmp-card good">
-            <h4>这个产品的做法</h4>
-            <ul>
-              <li>判定 C 类，<strong>不输出任何逐句改写</strong></li>
-              <li>可迁移项 4 条：一手用户需求来源、竞品价格带分析、跨部门周报被采纳、4 年电商行业认知</li>
-              <li>时间账：SQL 从零到能过初筛约 3 个月，窗口函数是卡点</li>
-              <li>先投：电商公司的数据运营 / 用户运营（AI 方向），同一条门，现有经历够用</li>
-            </ul>
-            <p style="margin-top:12px;font-size:12px;color:var(--good)">用户可能不高兴，但不会白跑三个月。</p>
-          </div>
-        </div>
+  <!-- 02 -->
+  <section class="panel" id="p2">
+    <div class="card">
+      <div class="card-h"><h2>要投的岗位</h2><span class="sub">粘贴 JD 原文 · 没有 JD 可以先跳过</span></div>
+      <label class="fl">JD 原文</label>
+      <textarea id="jd" placeholder="把招聘要求整段粘进来。
+
+如果暂时没有具体 JD，可以只写岗位名称和你的求职意向，但结论会偏保守。"></textarea>
+      <div class="acts">
+        <button class="btn" id="runDiag">开始诊断</button>
+        <button class="btn ghost" id="back1">返回改事实库</button>
+        <span class="hint">一次诊断约 20–40 秒</span>
       </div>
-
+      <div class="err" id="e2" style="display:none"></div>
     </div>
-  </div>
+  </section>
 
-  <p style="margin-top:18px;font-size:12.5px;color:var(--ink3);max-width:64ch">
-    原型里的诊断内容，来自这个产品对我本人简历的实际输出（已脱敏）。也就是说它第一个诊断的用户是我，第一条被它否掉的技能也是我的。
-  </p>
-</div></section>
-
-<!-- ============ 评测 ============ -->
-<section id="eval"><div class="wrap">
-  <div class="sec-h"><span class="sec-n">04</span><h2>首轮评测暴露的四个硬伤</h2></div>
-  <p class="sec-sub">5 份样本（带埋点）跑完，问题召回 5/5，但暴露了四个会让产品给出错误建议的地方。全部改写进了 v0.2。</p>
-
-  <div class="grid2">
-    <div class="flaw">
-      <div class="fn">硬伤 01</div>
-      <h3>门槛定得太高，工具会直接罢工</h3>
-      <div class="was"><b>原来</b>要求简历能拆出 ≥20 条才算合格。5 份样本没有一份达标，最多的只有 9 条。真实学生简历通常 6–10 条。</div>
-      <div class="now"><b>改成</b>≥8 条合格，6–7 条加一句"信息偏少，结论会偏保守"，≤5 条才放弃。</div>
+  <!-- 03 -->
+  <section class="panel" id="p3">
+    <div id="report"></div>
+    <div id="check"></div>
+    <div class="acts" style="margin-top:22px">
+      <button class="btn ghost" id="back2">改 JD 重跑</button>
+      <button class="btn ghost" id="newCv">换一份简历</button>
     </div>
-    <div class="flaw">
-      <div class="fn">硬伤 02</div>
-      <h3>没有"可救性判断"这一层</h3>
-      <div class="was"><b>原来</b>拿到简历直接进四段。样本 2 完全没有能力，它还在给改写建议——等于推人进坑。</div>
-      <div class="now"><b>改成</b>进四段之前先做 A/B/C 三分类，C 类不给改写，只给补法和投递方向。</div>
-    </div>
-    <div class="flaw">
-      <div class="fn">硬伤 03</div>
-      <h3>B 类场景会逼用户编造</h3>
-      <div class="was"><b>原来</b>"配合完成 20 场活动"会被改成"主导 20 场活动"。用户念着爽，面试一追问就崩。这跟产品第一条铁律直接冲突。</div>
-      <div class="now"><b>改成</b>改写前必须先拿到用户自己的判断作原料；并且硬约束不许升级动词。</div>
-    </div>
-    <div class="flaw">
-      <div class="fn">硬伤 04</div>
-      <h3>容易写成判决书</h3>
-      <div class="was"><b>原来</b>只有"缺什么"一栏，模型会写成一无是处。样本 5 的正确输出其实是"可迁移的有 4 条 + 补 3 个月能到线"。</div>
-      <div class="now"><b>改成</b>C 类强制包含"可迁移项"和"时间账"两栏。时间账必须给月数，不许写"尽快"。</div>
-    </div>
-  </div>
-
-  <div style="margin-top:26px;padding:20px 22px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--warm);border-radius:8px">
-    <p style="font-size:13.5px;color:var(--ink2);line-height:1.8;max-width:70ch">
-      <strong style="color:var(--ink)">方法本身的局限，我写在报告第一段：</strong>
-      这 5 份样本是虚构的，而且我读着埋点答案跑，等于开卷考试。它能验证"格式稳不稳、逻辑忽不忽略"，不能验证"对真实用户有没有用"。
-      要真验证必须拿不带答案的真实简历，然后由用户本人判断"这条我原来没想到"——那才是信号。
-    </p>
-  </div>
-</div></section>
-
-<!-- ============ 决策 ============ -->
-<section id="decide"><div class="wrap">
-  <div class="sec-h"><span class="sec-n">05</span><h2>AI 都会给，但我否掉的三件事</h2></div>
-  <p class="sec-sub">代码是一个下午生成的，这三个决定不是。每一条都是 AI 顺着我的话说、我反过来拦住的。</p>
-
-  <div class="dec">
-    <div class="dec-h"><span class="dec-id">D-002</span><h3>不爬招聘网站，改让用户手动粘贴 JD</h3></div>
-    <div class="dl">
-      <div class="lb">AI 会给</div>
-      <div class="tx">"自动抓取岗位"听起来是个好卖点，它会直接写爬虫，跑得通，连反爬都能帮我绕。</div>
-    </div>
-    <div class="dl">
-      <div class="lb warn">我拦住的理由</div>
-      <div class="tx">爬虫的难点不是技术，是法律。平台用户协议、《反不正当竞争法》、《个人信息保护法》——岗位 JD 里常带 HR 的姓名和电话。<em>能不能做，和该不该做，是两个问题。</em>产品经理的主要工作是回答后一个。</div>
-    </div>
-    <div class="dl">
-      <div class="lb ok">代价</div>
-      <div class="tx">放弃了"自动发现新岗位"这个卖点，可能会少掉一批嫌麻烦的用户。我认了。</div>
-    </div>
-  </div>
-
-  <div class="dec">
-    <div class="dec-h"><span class="dec-id">D-003</span><h3>「不许编造」用数据结构强制，不用提示词</h3></div>
-    <div class="dl">
-      <div class="lb">AI 会给</div>
-      <div class="tx">在提示词里加一句"禁止虚构经历，只用原文信息"，一行字收工，还显得很完整。</div>
-    </div>
-    <div class="dl">
-      <div class="lb warn">我拦住的理由</div>
-      <div class="tx">这句话是请求，不是约束。模型可以不听，更麻烦的是<em>我没办法验证它听没听</em>。于是改成：每条经历建一个带编号的事实条目，输出每一句都必须挂编号，挂不上就删掉。请求和强制的区别，就是聊天和产品的区别。</div>
-    </div>
-    <div class="dl">
-      <div class="lb ok">代价</div>
-      <div class="tx">实现变复杂，而且每份简历要先人工建事实库，全自动做不了。第一版说好的"一键上传"没了。</div>
-    </div>
-  </div>
-
-  <div class="dec">
-    <div class="dec-h"><span class="dec-id">D-005</span><h3>先做人力版，不写代码</h3></div>
-    <div class="dl">
-      <div class="lb">AI 会给</div>
-      <div class="tx">"我要做一个简历优化产品"——它三天就能给我一个能跑起来的网页，看起来很像个产品。</div>
-    </div>
-    <div class="dl">
-      <div class="lb warn">我拦住的理由</div>
-      <div class="tx">这个项目当时的空洞不是缺代码，是<em>没有人用过</em>。代码解决不了后者。而且人力版跑出来的三样东西——真实输出长什么样、迭代过的提示词、用户原话——恰好是做界面的前置输入，顺序反了要重做一遍。</div>
-    </div>
-    <div class="dl">
-      <div class="lb ok">代价</div>
-      <div class="tx">有一周时间没有可演示的界面，看起来像没干活。上一版六个项目就是这么失败的：全是 demo，零个用户。</div>
-    </div>
-  </div>
-
-  <p style="margin-top:26px;font-size:13px;color:var(--ink3);max-width:66ch">
-    完整决策日志 6 条，含一条写明了"什么情况会推翻这个决定"。被证伪的决定不删，加一行「后来发现」。
-  </p>
-</div></section>
-
-<!-- ============ PRD ============ -->
-<section id="prd"><div class="wrap">
-  <div class="sec-h"><span class="sec-n">06</span><h2>PRD 里我留了三个坑，写明怎么填</h2></div>
-  <p class="sec-sub">331 行的 PRD，每一处不确定都标了"待验证"，并写明用什么动作验证、过线标准是多少。没有一条是"后续再讨论"。</p>
-
-  <ul class="pending">
-    <li>
-      <span class="pt">用户假设 P1：他手上有一段真实但没写清的经历</span>
-      如果他经历本身是空的，产品所有建议都会退化成"去补经历"，那不是改简历能解决的。
-      <span class="pm">验证：问 3 个正在找实习的同学"上次改简历最纠结哪一句"。3 人里 ≥2 人能说出具体句子，假设成立。</span>
-    </li>
-    <li>
-      <span class="pt">用户假设 P3：他愿意花 30 分钟读一份"说你缺什么"的报告</span>
-      如果只想听好话，报告第三段就会直接劝退。这是最大风险。
-      <span class="pm">验证：真实案例里记录"读完缺口段之后，他有没有继续问下一句"，而不是问他满不满意。</span>
-    </li>
-    <li>
-      <span class="pt">产品定位：改简历工具，还是投递决策工具</span>
-      首轮样本里 A 类只占 20%，如果真实用户也是这个比例，那核心价值就不是改简历，是告诉他该投什么。
-      <span class="pm">验证：3 份真实简历跑完，统计 C 类占比。若 &gt;50%，重写 PRD 的用户与问题两节。</span>
-    </li>
-  </ul>
-</div></section>
-
-<!-- ============ 结语 ============ -->
-<div class="wrap end">
-  <blockquote>
-    这个产品第一个诊断的用户是我自己。它给我判了 A 类——能力都在，只是没说清。<br>
-    但它同时指出了一个更硬的洞：六个项目，五个只有我自己用过。<br>
-    所以这个页面本身就是它给出的第一条建议的执行结果。
-  </blockquote>
-  <div class="sig">
-    张照泉 · 北京联合大学 通信工程 · 2027 届<br>
-    <a href="https://github.com/Ab900879" target="_blank" rel="noopener">GitHub / Ab900879</a>
-  </div>
-</div>
-
-<footer class="wrap">
-  <span>简历诊断助手 · 产品原型与过程记录</span>
-  <span>全部数据来自本地实测，样本已脱敏</span>
-</footer>
-
+  </section>
 </main>
 
-<script>
-(function(){
-  var steps = document.querySelectorAll('.step');
-  var screens = [document.getElementById('s1'), document.getElementById('s2'), document.getElementById('s3')];
+<footer class="wrap">
+  <span>简历诊断 · 事实编号 + 可执行校验</span>
+  <span>数据只存在你的浏览器里，不上传 · <a href="https://github.com/Ab900879/resume-diagnose" target="_blank" rel="noopener">源码</a></span>
+</footer>
 
-  function go(n){
-    steps.forEach(function(b,i){ b.classList.toggle('on', i === n-1); });
-    screens.forEach(function(s,i){ s.classList.toggle('on', i === n-1); });
-  }
-  steps.forEach(function(b){
-    b.addEventListener('click', function(){ go(parseInt(b.dataset.go,10)); });
-  });
+<!-- 设置 -->
+<div class="drawer" id="drawer">
+  <div class="mask" id="mask"></div>
+  <div class="box">
+    <h3>设置</h3>
+    <p class="dsub">需要一个大模型接口。DeepSeek 最便宜，也支持浏览器直连。Key 只存在这台设备上。</p>
 
-  // 开始诊断
-  document.getElementById('run').addEventListener('click', function(){
-    var btn = this;
-    btn.textContent = '正在建事实库…';
-    btn.disabled = true;
-    setTimeout(function(){
-      btn.textContent = '开始诊断';
-      btn.disabled = false;
-      go(2);
-    }, 850);
-  });
+    <label>API Key</label>
+    <input id="keyIn" type="password" placeholder="sk-...">
+    <p class="note">在 platform.deepseek.com 创建。这里不会把 Key 发给除模型服务以外的任何地方。</p>
 
-  // 折叠块（只让点标题折叠，避免误触）
-  document.querySelectorAll('.blk-h').forEach(function(h){
-    h.addEventListener('click', function(){ h.parentNode.classList.toggle('open'); });
-  });
+    <label>接口地址</label>
+    <input id="baseIn" value="https://api.deepseek.com/chat/completions">
+    <p class="note">默认 DeepSeek。其他兼容 OpenAI 格式的服务也能用，但必须允许浏览器跨域。</p>
 
-  // 事实溯源
-  var DATA = {
-    q1:{id:'f-006',text:'用 ReAct 思路让 Agent 调用 3 个工具，先写 PRD 定下「查不到就拒答」的规则，写了异常情况和验收标准。',src:'项目 3 · 第 2 段'},
-    q2:{id:'f-009',text:'技能栏：需求分析、PRD 撰写、原型（Figma）、竞品分析、提示词设计',src:'技能段 · 第 1 行'},
-    q3:{id:'f-007',text:'用 Coze 搭 AI 助手，做了 50+ 轮对话调优；对比 3 版提示词看输出差异。',src:'项目 1 · 第 2 段'},
-    q4:{id:'f-013',text:'自己设计 10 条测试用例和 4 条打分规则，首跑 69.8 分；复核发现一条规则写错，改完重跑。',src:'项目 4 · 第 1 段'},
-    q5:{id:'f-018',text:'校企项目中跟研发、运维对需求，确认统计口径。',src:'其他经历 · 第 2 段'},
-    q6:{id:'f-016',text:'用 SQL 做的日/周/月自动统计报表，上线后团队日常在用。',src:'项目 6 · 第 3 段'}
-  };
-  var qBox = document.getElementById('quote');
-  document.querySelectorAll('.fid').forEach(function(f){
-    f.addEventListener('click', function(e){
-      e.stopPropagation();
-      var d = DATA[f.dataset.q];
-      if(!d) return;
-      document.querySelectorAll('.fid').forEach(function(x){ x.classList.remove('act'); });
-      f.classList.add('act');
-      document.getElementById('qh').textContent = '事实溯源 ' + d.id;
-      document.getElementById('qt').textContent = d.text;
-      document.getElementById('qs').textContent = '来源：' + d.src;
-      qBox.classList.add('on');
-    });
-  });
-})();
-</script>
+    <label>模型</label>
+    <input id="modelIn" value="deepseek-chat">
+    <p class="note">拆事实库和诊断各调用一次。</p>
+
+    <div class="dacts">
+      <button class="btn" id="saveSet">保存</button>
+      <button class="btn ghost" id="closeSet">关闭</button>
+    </div>
+    <p class="note" id="setState" style="margin-top:16px"></p>
+  </div>
+</div>
+
+<script src="prompts.js"></script>
+<script src="verify.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
