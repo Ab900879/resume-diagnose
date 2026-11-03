@@ -1,10 +1,12 @@
 # 简历诊断
 
+> **v0.5 · 2026-11-03 封版。** 已知缺陷、成本、接手顺序见 **[项目状态](docs/status.md)**。封版不是做完了，是判断该停在这里。
+
 **大多数简历工具在帮你改措辞。这个东西先告诉你：这个岗，你现在该不该投。**
 
 投得了，它给出带事实编号的逐句改写；投不了，它一句都不改，只告诉你缺哪几件东西、补最短要多久、现在该投什么。
 
-**[打开就能用](https://ab900879.github.io/resume-diagnose/)** · **[作品集：一个 AI 产品的 0→1（汇报版）](docs/portfolio.md)** · **[产品手记：怎么做出来的](docs/build-log.md)** · **[Badcase 归因档案](docs/badcase-log.md)** · **[FAQ](docs/FAQ.md)** · **[它怎么想的](https://ab900879.github.io/resume-diagnose/about.html)** · **[三分类判据](skill/references/triage.md)** · **[PRD](docs/PRD.md)** · **[决策日志](docs/DECISIONS.md)**
+**[打开就能用](https://ab900879.github.io/resume-diagnose/)** · **[作品集：一个 AI 产品的 0→1（汇报版）](docs/portfolio.md)** · **[项目状态：已封版](docs/status.md)** · **[产品手记：怎么做出来的](docs/build-log.md)** · **[Badcase 归因档案](docs/badcase-log.md)** · **[FAQ](docs/FAQ.md)** · **[它怎么想的](https://ab900879.github.io/resume-diagnose/about.html)** · **[三分类判据](skill/references/triage.md)** · **[PRD](docs/PRD.md)** · **[决策日志](docs/DECISIONS.md)**
 
 > 网页版是真能跑的：右上角填自己的模型 Key（默认 DeepSeek），贴简历 → 拆事实 → 贴 JD → 拿报告。
 > 事实库存在浏览器 localStorage 里，简历不出这台设备。
