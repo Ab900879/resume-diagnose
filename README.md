@@ -4,7 +4,7 @@
 
 投得了，它给出带事实编号的逐句改写；投不了，它一句都不改，只告诉你缺哪几件东西、补最短要多久、现在该投什么。
 
-**[打开就能用](https://ab900879.github.io/resume-diagnose/)** · **[产品手记：怎么做出来的](docs/build-log.md)** · **[它怎么想的](https://ab900879.github.io/resume-diagnose/about.html)** · **[三分类判据](skill/references/triage.md)** · **[PRD](docs/PRD.md)** · **[决策日志](docs/DECISIONS.md)**
+**[打开就能用](https://ab900879.github.io/resume-diagnose/)** · **[产品手记：怎么做出来的](docs/build-log.md)** · **[Badcase 归因档案](docs/badcase-log.md)** · **[FAQ](docs/FAQ.md)** · **[它怎么想的](https://ab900879.github.io/resume-diagnose/about.html)** · **[三分类判据](skill/references/triage.md)** · **[PRD](docs/PRD.md)** · **[决策日志](docs/DECISIONS.md)**
 
 > 网页版是真能跑的：右上角填自己的模型 Key（默认 DeepSeek），贴简历 → 拆事实 → 贴 JD → 拿报告。
 > 事实库存在浏览器 localStorage 里，简历不出这台设备。
@@ -82,14 +82,28 @@ cp -r skill ~/.workbuddy/skills/resume-diagnose
 用 [`prompt.md`](prompt.md)，两段分开跑，顺序不能反。ChatGPT / Claude / 豆包都能用。
 缺点是校验器跑不了，你得自己盯着编号。
 
-**四、命令行跑一遍，一次出两份**（不需要 Key）
+**四、命令行跑一遍，一次出四份**（不需要 Key）
 
 ```bash
-node tools/agent.mjs --cv 简历.txt --jd 岗位JD.txt --out 输出目录
+node tools/agent.mjs --cv 简历.txt [--jd 岗位JD.txt] --out 输出目录
 ```
 
 走 WorkBuddy 云服务的免密钥模型，三段连着跑：拆事实 → 诊断 → **生成改好的简历全文**。
-产物两份：`01-诊断报告-<日期>.md` 和 `02-改好的简历-<日期>.md`，外加一份事实库 JSON。全程约 60 秒。
+
+**默认是类适配模式**：不给 `--jd` 也行——它按[类岗位需求库](references/jd-class-aipm.md)
+（6 份在招 JD 提炼的"AI 产品实习这一类都要什么"）评估和改写。没人会为每一家单独改简历，
+你拿一份简历投一类岗位，改出来就是适配这一类的。
+
+产物四份，缺一份不算完成：
+
+| 文件 | 是什么 |
+|---|---|
+| `01-诊断报告-<日期>.md` | HR 视角（每份简历只看 10 秒）+ 固定一段「投了没回音 ≠ 简历有问题」的判定边界 |
+| `02-改好的简历-<日期>.md` | **纯净版，复制即可投**——零「依据」零说明文字 |
+| `03-改动说明-<日期>.md` | 每处改动的原因和出处，跟简历分开 |
+| `04-事实库-<日期>.json` | 下次改简历直接复用，不重拆 |
+
+全程约 60 秒。
 
 **五、只要校验器**
 
@@ -119,9 +133,11 @@ node tools/agent.mjs --cv 简历.txt --jd 岗位JD.txt --out 输出目录
 │   └── scripts/             编号与动词校验器
 ├── docs/
 │   ├── build-log.md          产品手记：被推翻的假设、否掉的方案、上线前的两个 bug
+│   ├── badcase-log.md        9 个真实坏案例的归因（P0/P1/P2 分级）
+│   └── FAQ.md                被真实问过的问题
 │   ├── PRD.md               331 行，含 3 处写明了验证方式的待验证
 │   ├── DECISIONS.md         6 条决策，含被证伪后不删的
-│   └── eval-report-v1.md    5 份样本的完整结果
+
 └── examples/
 ```
 
