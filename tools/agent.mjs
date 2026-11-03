@@ -72,6 +72,10 @@ function checkFact(o) {
 }
 function checkDiag(o) {
   if (!o || !o.class || !o.reason) return false;
+  // 成长路径是硬产出：没给具体动作就是这份诊断不完整
+  const gp = o.growth && Array.isArray(o.growth.projects) ? o.growth.projects : [];
+  if (gp.length < 2) return false;
+  if (!gp.every(p => p && p.what && p.proof)) return false;
   const n = k => (o[k] || []).length;
   if (o.class === "A" || o.class === "B") return n("rewrites") + n("gaps") > 0;
   if (o.class === "C") return n("gaps") + n("transferable") > 0;
@@ -178,6 +182,20 @@ if ((report.transferable || []).length) {
   md += "\n";
 }
 if (report.nextApply) md += "## 那该投什么\n\n" + report.nextApply + "\n\n";
+if (report.growth) {
+  md += "## 往这个方向怎么继续攒证据\n\n";
+  if (report.growth.direction) md += "**方向定位**：" + report.growth.direction + "\n\n";
+  if (report.growth.projects && report.growth.projects.length) {
+    md += "| 做什么 | 物证 | 多久 | 为什么 |\n|---|---|---|---|\n";
+    report.growth.projects.forEach(p => {
+      md += "| " + (p.what || "") + " | " + (p.proof || "") + " | " +
+        (p.months ? p.months + " 个月" : "—") + " | " + (p.why || "") + " |\n";
+    });
+    md += "\n";
+  }
+  if (report.growth.firstStep) md += "**本周就能做的一件事**：" + report.growth.firstStep + "\n\n";
+  md += "完整版见 `05-下一步怎么攒经历`。\n\n";
+}
 md += "## 关于「投了没回音」——先读这段再下结论\n\n";
 md += "这份报告只判断一件事：**简历和这一类岗位匹不匹配**。它不预测、也不承诺投出去有没有回音。\n\n";
 md += "投出去 3-4 天没动静，不等于简历有问题。常见原因（按概率排）：\n\n";
@@ -214,6 +232,24 @@ const clp = path.join(outDir, "03-改动说明-" + today + ".md");
 fs.writeFileSync(clp, cl, "utf8");
 
 fs.writeFileSync(path.join(outDir, "04-事实库-" + today + ".json"), JSON.stringify(facts, null, 2), "utf8");
+
+// ---- 05：往这个方向怎么继续攒经历（不管判成哪一类都有用）----
+if (report.growth) {
+  let gr = "# 下一步怎么攒经历 · " + today + "\n\n";
+  gr += "> 这一份和简历无关，是给「接下来往这个方向走」用的：做什么、做完能拿出什么、多久、为什么值得做。\n\n";
+  if (report.growth.direction) gr += "## 方向定位\n\n" + report.growth.direction + "\n\n";
+  (report.growth.projects || []).forEach((p, i) => {
+    gr += "## " + (i + 1) + ". " + (p.what || "") + "\n\n";
+    gr += "- **做完能拿出什么**：" + (p.proof || "") + "\n";
+    gr += "- **多久**：" + (p.months ? p.months + " 个月" : "—") + "\n";
+    gr += "- **为什么值得做**：" + (p.why || "") + "\n\n";
+  });
+  if (report.growth.firstStep) gr += "## 本周就能启动的一件事\n\n" + report.growth.firstStep + "\n\n";
+  if (report.growth.nextCheck) gr += "## 怎么验证这一步真做成了\n\n" + report.growth.nextCheck + "\n";
+  const gp = path.join(outDir, "05-下一步怎么攒经历-" + today + ".md");
+  fs.writeFileSync(gp, gr, "utf8");
+  log("  成长路径 → " + gp);
+}
 
 log("\n全程 " + ((Date.now() - t0) / 1000).toFixed(1) + "s");
 log("  诊断报告 → " + rp);
