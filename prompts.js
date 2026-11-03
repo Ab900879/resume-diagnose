@@ -61,8 +61,18 @@ C 类：填 gaps（为什么不够格）、transferable（可迁移项）、time
 最多 3 条。original 必须逐字引用简历原句。suggestion 只能重组事实库里已有的信息。
 why 里要写清"原来那版的问题是什么"，不能只说"这样更好"。
 
+【第四步：怎么继续攒证据（不管哪一类都要给）】
+用户接下来要往这一类岗位走，得知道下一步做什么。给 2-3 个具体动作，每个必须回答四件事：
+- what：具体做什么（不是"多学习"，是"给 X 项目补一份 Y"）
+- proof：做完了能拿出什么物证（链接、报告、数字、截图）
+- months：多久能做完
+- why：对应类需求库的哪一条（写 H/P/D 编号），或者补上哪个 gap
+第一条必须是**本周就能启动**的，要求是低成本、有物证。
+另外给 firstStep（本周动作）和 nextCheck（怎么验证这一步真做成了）。
+不许写"多刷面试题""多看行业报告"这种没法验证出东西的建议。
+
 【输出】只输出 JSON，不要解释、不要 markdown 代码块。格式：
-{"class":"A|B|C","reason":"一句理由","requirements":[{"id":"R1","text":"一句人话"}],"evidence":[{"req":"R1","level":"强|中|弱|无","text":"具体做了什么","cites":["f-001"]}],"gaps":[{"title":"短标题","text":"说明","cites":[]}],"rewrites":[{"where":"位置","original":"原句逐字","suggestion":"改写","why":"理由","cites":["f-013"]}],"questions":["B 类的追问"],"transferable":[{"ability":"通用能力词","text":"依据","cites":["f-010"]}],"timeline":{"months":3,"blocker":"最花时间的那个具体技能","firstStep":"本周能做的具体动作"},"nextApply":"建议投哪类岗位，为什么是同一扇门"}
+{"class":"A|B|C","reason":"一句理由","requirements":[{"id":"R1","text":"一句人话"}],"evidence":[{"req":"R1","level":"强|中|弱|无","text":"具体做了什么","cites":["f-001"]}],"gaps":[{"title":"短标题","text":"说明","cites":[]}],"rewrites":[{"where":"位置","original":"原句逐字","suggestion":"改写","why":"理由","cites":["f-013"]}],"questions":["B 类的追问"],"transferable":[{"ability":"通用能力词","text":"依据","cites":["f-010"]}],"growth":{"direction":"类需求库第〇节里的哪个方向，例如：④ 评测 / 效果优化","projects":[{"what":"具体做什么","proof":"做完后拿得出什么物证","months":1,"why":"对应 H2 或补上哪个 gap"}],"firstStep":"本周能启动的一个具体动作","nextCheck":"怎么验证这一步真做成了"},"timeline":{"months":3,"blocker":"最花时间的那个具体技能","firstStep":"本周能做的具体动作"},"nextApply":"建议投哪类岗位，为什么是同一扇门"}
 
 事实库：
 `;
